@@ -1,0 +1,6 @@
+giterminismConfigVersion: 1
+helm:
+  allowUncommittedFiles:
+     - .helm/charts
+     - .helm/Chart.lock
+

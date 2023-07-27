@@ -1,0 +1,48 @@
+backend: 
+  name: backend
+  envs: 
+    LOG_LEVEL: debug
+    PORT: 8080
+    SENTRY_DSN: https://86f061a7a77648a7a24a5876e35dad5c@o1073540.ingest.sentry.io/4504921121816576
+    PROMETHEUS_MULTIPROC_DIR: /tmp
+  image:
+    tag: '{{ .Values.werf.tag.backend }}'
+  service:
+    name: app
+    port: 80
+    targetPort: app
+  ingress:
+    enabled: true
+    path: /
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+  replicaCount: 1
+  command: ["gunicorn"]
+  args: ["app.main:rest", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:8080"]
+  updateStrategy: 
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 100%
+      maxUnavailable: 0
+  livenessProbe:
+    enabled: true
+    httpGet:
+        path: /healthcheck
+        port: app
+  readinessProbe:
+    enabled: true
+    httpGet:
+      path: /healthcheck
+      port: app
+  containerPorts:
+    - name: app
+      containerPort: 8080
+  monitoring:
+    enabled: true
+    endpoints:
+      - port: app
+        path: /metrics
+  resources:
+    requests:
+      memory: "400Mi"
+      cpu: "35m"

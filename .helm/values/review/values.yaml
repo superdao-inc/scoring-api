@@ -1,0 +1,13 @@
+backend:
+  envs:
+    MODE: stage
+    SIMILAR_WALLETS_API_URL: https://similar-wallets.superdao.dev
+  useServices:
+    postgresql: true
+
+services:
+  postgresql:
+    enabled: true
+    auth:
+      database: scoring_api
+      username: scoring_api

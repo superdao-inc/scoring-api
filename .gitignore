@@ -1,0 +1,22 @@
+__pycache__/
+*.py[cod]
+
+.DS_Store
+.idea
+.fleet
+
+.mypy_cache
+.pytest_cache
+.install.stamp
+
+.env
+dist/
+
+.helm/charts
+.helm/Chart.lock
+
+# credentials
+tests/stress_test/db.json
+
+# Gitlab ci
+deploy.env

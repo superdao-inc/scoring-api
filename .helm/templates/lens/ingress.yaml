@@ -1,0 +1,40 @@
+{{- if  eq .Values.werf.env "prod" -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: lens-scoring-api-prod
+  annotations:
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: lens-basic-auth
+    nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required'
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - scoring-api.superdao.co
+  rules:
+    - host: scoring-api.superdao.co
+      http:
+        paths:
+          - path: /v1/wallet/attributes_simple
+            pathType: Prefix
+            backend:
+              service:
+                name: scoring-api-prod-backend
+                port:
+                  name: app
+          - path: /docs
+            pathType: Prefix
+            backend:
+              service:
+                name: scoring-api-prod-backend
+                port:
+                  name: app
+          - path: /openapi.json
+            pathType: Prefix
+            backend:
+              service:
+                name: scoring-api-prod-backend
+                port:
+                  name: app
+{{- end -}}

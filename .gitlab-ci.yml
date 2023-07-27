@@ -1,0 +1,108 @@
+#https://gitlab.superdao.co/dev/platform/gitlab-templates/-/blob/main/gitlab-ci/includes/deploy.gitlab-ci.yml
+
+include:
+  - project: 'dev/platform/gitlab-templates'
+    ref: main
+    file: '/gitlab-ci/includes/deploy.gitlab-ci.yml'
+
+stages:
+  - test
+  - prepare
+  - deploy
+  - dismiss
+
+variables:
+  HUSKY: 0
+  DOCKER_BUILDKIT: 1
+  DEPLOY_DOMAIN_PREFIX: $CI_PROJECT_NAME-$CI_ENVIRONMENT_SLUG
+  DEPLOY_NAMESPACE: $CI_PROJECT_NAME-$CI_ENVIRONMENT_SLUG
+  DEPLOY_PRODUCTION_DOMAIN: https://scoring-api.superdao.dev
+
+
+Build:
+  stage: prepare
+  extends: .base_build
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: always
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: manual
+
+Deploy to review:
+  stage: deploy
+  extends: .base_deploy
+  variables:
+      WERF_ATOMIC: 'true'
+  before_script:
+    - !reference [.deploy, external_access]
+  environment:
+    action: start
+    name: review-${CI_MERGE_REQUEST_IID}
+    url: $DYNAMIC_ENVIRONMENT_URL
+    on_stop: Stop review
+    auto_stop_in: 1 day
+  artifacts:
+    reports:
+      dotenv: deploy.env
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+Stop review:
+  stage: dismiss
+  when: manual
+  extends: .base_stop_review
+  needs: [Deploy to review]
+  environment:
+    action: stop
+    name: review-${CI_MERGE_REQUEST_IID}
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+Deploy to stage:
+  extends: .base_deploy
+  environment:
+    name: stage
+    url: https://${DEPLOY_DOMAIN_PREFIX}.${DEPLOY_SUBDOMAIN}
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" 
+      when: manual
+
+Deploy to production:
+  extends: .base_deploy
+  environment:
+    name: prod
+    url: $DEPLOY_PRODUCTION_DOMAIN
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: manual
+
+run_linter:
+  stage: test
+  image: python:3.9-slim
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" || $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: always
+  before_script:
+    - pip install poetry==1.4.0
+    - poetry install -vvv
+  script:
+    - poetry run isort app --check-only
+    - poetry run black app --diff
+    - poetry run flake8 app
+    - poetry run mypy app
+    - poetry run bandit -r app
+
+run_tests:
+  stage: test
+  image: python:3.9-slim
+  variables:
+    MODE: test
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" || $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: always
+  before_script:
+    - pip install poetry==1.4.0
+    - poetry install -vvv
+
+  script:
+    - poetry run pytest tests -vvv

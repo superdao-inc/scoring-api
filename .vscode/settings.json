@@ -1,0 +1,19 @@
+{
+    "python.poetryPath": "poetry",
+    "python.formatting.provider": "black",
+    "editor.formatOnSave": true,
+    "[python]": {
+        "editor.formatOnPaste": false
+    },
+    "python.linting.enabled": true,
+    "python.linting.lintOnSave": true,
+    "python.linting.banditEnabled": true,
+    "python.linting.flake8Enabled": true,
+    "python.linting.mypyEnabled": true,
+    "python.linting.ignorePatterns": [
+        "tests/*/*.py",
+        "app/audience/models_helpers.py",
+    ],
+    "isort.check": true,
+    "isort.importStrategy": "fromEnvironment"
+}

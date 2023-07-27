@@ -1,0 +1,16 @@
+backend:
+  ingress:
+    internal: true
+  replicaCount: 6
+  pdb:
+    enabled: true
+    minAvailable: 75%
+  envs:
+    MODE: prod
+    LOG_LEVEL: debug
+    DB_NAME: scoring_api
+    DB_HOST: 10.10.192.51
+    DB_PORT: 5432
+    DB_USER: scoring_api
+    SIMILAR_WALLETS_API_URL: https://similar-wallets.superdao.dev
+    

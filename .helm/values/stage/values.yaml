@@ -1,0 +1,9 @@
+backend:
+  envs:
+    MODE: stage
+    LOG_LEVEL: debug
+    DB_NAME: scoring_api
+    DB_HOST: 10.10.192.54
+    DB_PORT: 5432
+    DB_USER: scoring_api
+    SIMILAR_WALLETS_API_URL: https://similar-wallets.superdao.dev
